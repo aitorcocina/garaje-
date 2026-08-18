@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Garaje</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2220%22>🚗</text></svg>" />
+<style>
+  :root{
+    --bg-1:#0f1420;
+    --bg-2:#161d2e;
+    --card:#1c2438;
+    --card-2:#222c45;
+    --border:#2c3654;
+    --text:#eef1f8;
+    --text-dim:#9aa4bf;
+    --accent:#ff8a3d;
+    --accent-2:#ffb56b;
+    --ok:#3ddc84;
+    --ok-bg:rgba(61,220,132,0.12);
+    --bad:#ff5d6c;
+    --bad-bg:rgba(255,93,108,0.12);
+    --warn:#ffcc4d;
+    --warn-bg:rgba(255,204,77,0.12);
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(255,138,61,0.18), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(93,140,255,0.14), transparent 55%),
+      linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    color:var(--text);
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+
+  header.top{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:26px;flex-wrap:wrap;gap:14px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .logo{
+    width:46px;height:46px;border-radius:14px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+    box-shadow:0 6px 20px rgba(255,138,61,0.35);
+  }
+  .brand h1{
+    margin:0;font-size:28px;letter-spacing:-0.02em;
+    background:linear-gradient(135deg,#fff,#c9d3f2);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .brand .sub{color:var(--text-dim);font-size:13px;margin-top:2px;}
+
+  nav.tabs{
+    display:flex;gap:6px;background:var(--card);border:1px solid var(--border);
+    padding:5px;border-radius:14px;
+  }
+  nav.tabs button{
+    border:none;background:transparent;color:var(--text-dim);
+    padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:all .15s ease;
+  }
+  nav.tabs button.active{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#1a1206;
+  }
+  nav.tabs button:not(.active):hover{color:var(--text);background:var(--card-2);}
+
+  section{display:none;}
+  section.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .panel{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius);padding:22px;
+  }
+  .panel + .panel{margin-top:18px;}
+  .panel h2{margin:0 0 4px;font-size:18px;}
+  .panel p.hint{color:var(--text-dim);font-size:13px;margin:0 0 16px;}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  input[type=text],input[type=url],input[type=number],select,textarea{
+    background:#101627;border:1px solid var(--border);color:var(--text);
+    padding:11px 13px;border-radius:10px;font-size:14px;width:100%;
+    font-family:inherit;
+  }
+  textarea{resize:vertical;min-height:70px;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  label{display:block;font-size:12px;color:var(--text-dim);margin:0 0 6px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;}
+  .field{flex:1;min-width:150px;margin-bottom:14px;}
+
+  .btn{
+    border:none;cursor:pointer;padding:12px 20px;border-radius:10px;
+    font-size:14px;font-weight:700;transition:transform .1s ease, opacity .15s ease;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#1a1206;}
+  .btn-ghost{background:var(--card-2);color:var(--text);border:1px solid var(--border);}
+  .btn-ok{background:linear-gradient(135deg,#3ddc84,#59f0a2);color:#062915;}
+  .btn-bad{background:var(--card-2);color:var(--bad);border:1px solid var(--border);}
+
+  .analyze-bar{display:flex;gap:10px;}
+  .analyze-bar input{flex:1;}
+
+  .spinner{
+    width:16px;height:16px;border-radius:50%;
+    border:2px solid rgba(255,255,255,0.35);border-top-color:#1a1206;
+    animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .result{margin-top:20px;display:none;}
+  .result.show{display:block;}
+  .verdict{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;
+    margin-bottom:18px;font-weight:700;font-size:15px;
+  }
+  .verdict.apto{background:var(--ok-bg);color:var(--ok);border:1px solid rgba(61,220,132,.35);}
+  .verdict.no-apto{background:var(--bad-bg);color:var(--bad);border:1px solid rgba(255,93,108,.35);}
+  .verdict.revisar{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(255,204,77,.35);}
+  .verdict .score{margin-left:auto;font-size:13px;opacity:.85;font-weight:600;}
+
+  .reasons{list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:6px;}
+  .reasons li{font-size:13.5px;color:var(--text-dim);padding-left:22px;position:relative;}
+  .reasons li.good::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700;}
+  .reasons li.bad::before{content:"✕";position:absolute;left:0;color:var(--bad);font-weight:700;}
+  .reasons li.info::before{content:"•";position:absolute;left:0;color:var(--text-dim);font-weight:700;}
+
+  .grid-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 14px;}
+  .preview-photo{
+    width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:16px;
+    border:1px solid var(--border);background:var(--card-2);
+  }
+  .actions{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;}
+
+  /* Garaje grid */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
+  .toolbar .count{color:var(--text-dim);font-size:13px;}
+  .filters{display:flex;gap:6px;}
+  .filters button{
+    background:var(--card-2);border:1px solid var(--border);color:var(--text-dim);
+    padding:7px 14px;border-radius:20px;font-size:12.5px;cursor:pointer;font-weight:600;
+  }
+  .filters button.active{background:var(--accent);border-color:var(--accent);color:#1a1206;}
+
+  .cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;}
+  .car-card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;display:flex;flex-direction:column;transition:transform .15s ease, border-color .15s ease;
+  }
+  .car-card:hover{transform:translateY(-3px);border-color:#3a4568;}
+  .car-photo{
+    width:100%;height:160px;object-fit:cover;background:var(--card-2);display:block;
+  }
+  .car-photo.placeholder{display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--text-dim);}
+  .car-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1;}
+  .car-title{font-weight:700;font-size:15px;line-height:1.3;}
+  .car-price{font-size:20px;font-weight:800;color:var(--accent-2);}
+  .car-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim);}
+  .chip{background:var(--card-2);border:1px solid var(--border);padding:3px 9px;border-radius:20px;}
+  .car-badge{
+    align-self:flex-start;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+    text-transform:uppercase;letter-spacing:.03em;
+  }
+  .car-badge.apto{background:var(--ok-bg);color:var(--ok);}
+  .car-badge.revisar{background:var(--warn-bg);color:var(--warn);}
+  .car-footer{display:flex;gap:8px;margin-top:auto;padding-top:6px;}
+  .car-footer a, .car-footer button{flex:1;text-align:center;text-decoration:none;font-size:13px;padding:9px;}
+
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--text-dim);
+  }
+  .empty .big{font-size:42px;margin-bottom:10px;}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--card-2);border:1px solid var(--border);color:var(--text);
+    padding:12px 20px;border-radius:12px;font-size:13.5px;opacity:0;
+    transition:all .25s ease;pointer-events:none;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .storage-flag{
+    font-size:11.5px;color:var(--text-dim);display:flex;align-items:center;gap:6px;margin-top:4px;
+  }
+  .storage-flag .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);}
+  .storage-flag .dot.on{background:var(--ok);}
+
+  details.criteria summary{cursor:pointer;color:var(--text-dim);font-size:13px;margin-top:14px;}
+  details.criteria ul{color:var(--text-dim);font-size:13px;margin:10px 0 0;padding-left:18px;line-height:1.6;}
+
+  @media (max-width:560px){
+    .brand h1{font-size:22px;}
+    nav.tabs{width:100%;}
+    nav.tabs button{flex:1;padding:10px 8px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">🚗</div>
+      <div>
+        <h1>Garaje</h1>
+        <div class="sub">Analiza anuncios de coches y guarda los que valgan la pena</div>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button data-tab="analizar" class="active">Analizar</button>
+      <button data-tab="garaje">Garaje <span id="garajeCount"></span></button>
+    </nav>
+  </header>
+
+  <!-- ANALIZAR -->
+  <section id="tab-analizar" class="active">
+    <div class="panel">
+      <h2>Analizar coche</h2>
+      <p class="hint">Pega el enlace del anuncio (coches.net, wallapop, milanuncios, autocasion...). Intento sacar los datos automáticamente; si alguna web bloquea la extracción, rellénalos a mano abajo.</p>
+
+      <div class="analyze-bar">
+        <input type="url" id="urlInput" placeholder="https://..." />
+        <button class="btn btn-primary" id="btnAnalizar">Analizar</button>
+      </div>
+      <div class="storage-flag" id="storageFlag"></div>
+
+      <details class="criteria">
+        <summary>Mis criterios</summary>
+        <ul>
+          <li>Precio máximo 16.000 € con transferencia y todo incluido</li>
+          <li>Menos de 150.000 km</li>
+          <li>Tipo elevado: SUV, cross country o similar (no berlina baja)</li>
+          <li>Diésel preferible; si es gasolina, que consuma poco (~6 l/100km o menos)</li>
+          <li>Cambio manual preferible (no imprescindible)</li>
+          <li>Potencia suficiente para autovía/autopista (Bilbao ↔ Salamanca)</li>
+          <li>Cuanto más nuevo, mejor</li>
+        </ul>
+      </details>
+
+      <div class="result" id="result">
+        <img class="preview-photo" id="prevPhoto" style="display:none" />
+        <div class="verdict" id="verdictBox">
+          <span id="verdictIcon"></span>
+          <span id="verdictText"></span>
+          <span class="score" id="verdictScore"></span>
+        </div>
+        <ul class="reasons" id="reasons"></ul>
+
+        <div class="grid-fields">
+          <div class="field"><label>Título</label><input type="text" id="f_titulo"></div>
+          <div class="field"><label>Precio (€)</label><input type="number" id="f_precio"></div>
+          <div class="field"><label>Km</label><input type="number" id="f_km"></div>
+          <div class="field"><label>Año</label><input type="number" id="f_anio"></div>
+          <div class="field"><label>Combustible</label>
+            <select id="f_combustible">
+              <option value="">—</option>
+              <option value="diesel">Diésel</option>
+              <option value="gasolina">Gasolina</option>
+              <option value="hibrido">Híbrido</option>
+              <option value="electrico">Eléctrico</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field"><label>Cambio</label>
+            <select id="f_cambio">
+              <option value="">—</option>
+              <option value="manual">Manual</option>
+              <option value="automatico">Automático</option>
+            </select>
+          </div>
+          <div class="field"><label>Tipo</label>
+            <select id="f_tipo">
+              <option value="">—</option>
+              <option value="suv">SUV</option>
+              <option value="cross country">Cross country / rural</option>
+              <option value="berlina">Berlina</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div class="field"><label>Potencia (CV)</label><input type="number" id="f_potencia"></div>
+          <div class="field"><label>Consumo (l/100km, si gasolina)</label><input type="number" step="0.1" id="f_consumo"></div>
+          <div class="field" style="min-width:100%"><label>Foto (URL)</label><input type="text" id="f_foto"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-ok" id="btnAnadir">Añadir a garaje</button>
+          <button class="btn btn-bad" id="btnDescartar">Descartar</button>
+          <button class="btn btn-ghost" id="btnRecalcular">Recalcular veredicto</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GARAJE -->
+  <section id="tab-garaje">
+    <div class="toolbar">
+      <div class="count" id="garajeResumen">0 coches</div>
+      <div class="filters">
+        <button data-filter="todos" class="active">Todos</button>
+        <button data-filter="apto">Aptos</button>
+        <button data-filter="revisar">A revisar</button>
+      </div>
+    </div>
+    <div class="cars" id="carsGrid"></div>
+    <div class="empty" id="emptyState" style="display:none">
+      <div class="big">🅿️</div>
+      <div>Tu garaje está vacío. Analiza un anuncio para empezar.</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module">
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
+const CONFIG = {
+  SUPABASE_URL: "https://bzjzedwbahgitunoksps.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6anplZHdiYWhnaXR1bm9rc3BzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5NDQzODksImV4cCI6MjA5OTUyMDM4OX0.4y1CPnevUWQVl2r2v1lMfjAf3tL26gQoqeR7S8sFLlE",
+};
+
+const CRITERIA = {
+  precioMax: 16000,
+  kmMax: 150000,
+  consumoGasolinaMax: 6.5,
+  anioBaseline: new Date().getFullYear() - 10, // referencia para puntuar antigüedad
+};
+
+let supabase = null;
+let usingSupabase = false;
+if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY) {
+  try {
+    if (!window.supabase || !window.supabase.createClient) {
+      throw new Error("Librería de Supabase no disponible (revisa tu conexión a internet)");
+    }
+    supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    usingSupabase = true;
+  } catch (e) {
+    console.error("No se pudo cargar Supabase, uso almacenamiento local.", e);
+  }
+}
+
+/* =========================================================
+   UTILIDADES DE ALMACENAMIENTO (Supabase o localStorage)
+   ========================================================= */
+const LS_KEY = "garaje_coches_v1";
+
+function lsGetAll() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+  catch { return []; }
+}
+function lsSaveAll(arr) { localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+async function guardarCoche(coche) {
+  if (usingSupabase) {
+    const { data, error } = await supabase.from("coches").insert([coche]).select();
+    if (error) throw error;
+    return data[0];
+  } else {
+    const arr = lsGetAll();
+    const item = { ...coche, id: crypto.randomUUID(), created_at: new Date().toISOString() };
+    arr.unshift(item);
+    lsSaveAll(arr);
+    return item;
+  }
+}
+
+async function listarCoches() {
+  if (usingSupabase) {
+    const { data, error } = await supabase.from("coches").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  } else {
+    return lsGetAll();
+  }
+}
+
+async function borrarCoche(id) {
+  if (usingSupabase) {
+    const { error } = await supabase.from("coches").delete().eq("id", id);
+    if (error) throw error;
+  } else {
+    const arr = lsGetAll().filter(c => c.id !== id);
+    lsSaveAll(arr);
+  }
+}
+
+/* =========================================================
+   EXTRACCIÓN DE DATOS DEL ANUNCIO (heurística)
+   ========================================================= */
+async function extraerTextoDePagina(url) {
+  // Usamos un lector público que devuelve el contenido en texto/markdown,
+  // lo que evita bloqueos de CORS al leer directamente la web del anuncio.
+  const readerUrl = "https://r.jina.ai/" + url;
+  const resp = await fetch(readerUrl);
+  if (!resp.ok) throw new Error("No se pudo leer la página (" + resp.status + ")");
+  return await resp.text();
+}
+
+function detectarPlataforma(url) {
+  try {
+    const host = new URL(url).hostname.replace("www.", "");
+    return host;
+  } catch { return ""; }
+}
+
+function parseTexto(texto, url) {
+  const out = {
+    titulo: "", precio: null, km: null, anio: null,
+    combustible: "", cambio: "", tipo: "", potencia: null,
+    consumo: null, foto: "", plataforma: detectarPlataforma(url),
+  };
+
+  // Título: primera línea no vacía "razonable"
+  const lineas = texto.split("\n").map(l => l.trim()).filter(Boolean);
+  if (lineas.length) {
+    out.titulo = lineas.find(l => l.length > 8 && l.length < 120) || lineas[0].slice(0, 120);
+  }
+
+  // Precio: número seguido de € (coge el primero, suele ser el destacado)
+  let m = texto.match(/(\d{1,3}(?:[.,]\d{3})*)\s?€/);
+  if (m) out.precio = parseInt(m[1].replace(/[.,]/g, ""), 10);
+
+  // Km
+  m = texto.match(/(\d{1,3}(?:[.,]\d{3})*)\s?km\b/i);
+  if (m) out.km = parseInt(m[1].replace(/[.,]/g, ""), 10);
+
+  // Año (prioriza patrones tipo "Año: 2018" o "2018" en primeros 2000 caracteres)
+  m = texto.match(/a[ñn]o[:\s]*((19|20)\d{2})/i) || texto.slice(0, 3000).match(/\b((19|20)\d{2})\b/);
+  if (m) out.anio = parseInt(m[1], 10);
+
+  // Combustible
+  if (/di[eé]sel/i.test(texto)) out.combustible = "diesel";
+  else if (/gasolina/i.test(texto)) out.combustible = "gasolina";
+  else if (/h[ií]brido/i.test(texto)) out.combustible = "hibrido";
+  else if (/el[eé]ctrico/i.test(texto)) out.combustible = "electrico";
+
+  // Cambio
+  if (/cambio\s*autom[aá]tico|autom[aá]tico\b/i.test(texto)) out.cambio = "automatico";
+  else if (/cambio\s*manual|manual\b/i.test(texto)) out.cambio = "manual";
+
+  // Tipo (SUV / cross country / campo)
+  if (/\bsuv\b/i.test(texto)) out.tipo = "suv";
+  else if (/cross\s*country|todocamino|campo|4x4/i.test(texto)) out.tipo = "cross country";
+  else if (/berlina|sed[aá]n/i.test(texto)) out.tipo = "berlina";
+
+  // Potencia
+  m = texto.match(/(\d{2,3})\s?(cv|hp|caballos)\b/i);
+  if (m) out.potencia = parseInt(m[1], 10);
+
+  // Consumo
+  m = texto.match(/(\d{1,2}[.,]\d{1,2})\s?l\/100\s?km/i);
+  if (m) out.consumo = parseFloat(m[1].replace(",", "."));
+
+  // Foto: primera imagen razonable del markdown ![...](url)
+  m = texto.match(/!\[[^\]]*\]\((https?:\/\/[^\s)]+\.(?:jpg|jpeg|png|webp)[^\s)]*)\)/i);
+  if (m) out.foto = m[1];
+
+  return out;
+}
+
+/* =========================================================
+   VEREDICTO
+   ========================================================= */
+function calcularVeredicto(c) {
+  const reasons = [];
+  let hardFail = false;
+  let score = 50;
+
+  // Precio (obligatorio)
+  if (c.precio != null) {
+    if (c.precio <= CRITERIA.precioMax) {
+      reasons.push({ ok: true, txt: `Precio ${c.precio.toLocaleString("es-ES")} € dentro del máximo (${CRITERIA.precioMax.toLocaleString("es-ES")} €)` });
+      score += 15;
+    } else {
+      reasons.push({ ok: false, txt: `Precio ${c.precio.toLocaleString("es-ES")} € supera el máximo de ${CRITERIA.precioMax.toLocaleString("es-ES")} €` });
+      hardFail = true;
+    }
+  } else {
+    reasons.push({ ok: null, txt: "Precio no detectado — revísalo a mano" });
+  }
+
+  // Km (obligatorio)
+  if (c.km != null) {
+    if (c.km <= CRITERIA.kmMax) {
+      reasons.push({ ok: true, txt: `${c.km.toLocaleString("es-ES")} km, por debajo de ${CRITERIA.kmMax.toLocaleString("es-ES")} km` });
+      score += 10;
+    } else {
+      reasons.push({ ok: false, txt: `${c.km.toLocaleString("es-ES")} km supera el máximo de ${CRITERIA.kmMax.toLocaleString("es-ES")} km` });
+      hardFail = true;
+    }
+  } else {
+    reasons.push({ ok: null, txt: "Kilometraje no detectado — revísalo a mano" });
+  }
+
+  // Tipo elevado
+  if (c.tipo === "suv" || c.tipo === "cross country") {
+    reasons.push({ ok: true, txt: `Tipo "${c.tipo}": carrocería elevada, adecuada para carreteras en mal estado` });
+    score += 15;
+  } else if (c.tipo === "berlina") {
+    reasons.push({ ok: false, txt: "Es una berlina baja, no cumple el requisito de altura" });
+    score -= 15;
+  } else {
+    reasons.push({ ok: null, txt: "Tipo de carrocería sin confirmar — revisa si es elevado (SUV / cross country)" });
+  }
+
+  // Combustible
+  if (c.combustible === "diesel") {
+    reasons.push({ ok: true, txt: "Diésel: ideal para los kilómetros de autovía previstos" });
+    score += 10;
+  } else if (c.combustible === "gasolina") {
+    if (c.consumo != null && c.consumo <= CRITERIA.consumoGasolinaMax) {
+      reasons.push({ ok: true, txt: `Gasolina de bajo consumo (${c.consumo} l/100km)` });
+      score += 8;
+    } else if (c.consumo != null) {
+      reasons.push({ ok: false, txt: `Gasolina con consumo alto (${c.consumo} l/100km)` });
+      score -= 5;
+    } else {
+      reasons.push({ ok: null, txt: "Gasolina, consumo sin confirmar" });
+    }
+  } else if (c.combustible) {
+    reasons.push({ ok: null, txt: `Combustible: ${c.combustible}` });
+  } else {
+    reasons.push({ ok: null, txt: "Combustible no detectado" });
+  }
+
+  // Cambio
+  if (c.cambio === "manual") {
+    reasons.push({ ok: true, txt: "Cambio manual" });
+    score += 5;
+  } else if (c.cambio === "automatico") {
+    reasons.push({ ok: true, txt: "Cambio automático (no imprescindible, pero válido)" });
+    score += 2;
+  }
+
+  // Potencia
+  if (c.potencia != null) {
+    if (c.potencia >= 110) {
+      reasons.push({ ok: true, txt: `${c.potencia} CV, potencia de sobra para autovía/autopista` });
+      score += 5;
+    } else if (c.potencia >= 90) {
+      reasons.push({ ok: null, txt: `${c.potencia} CV, potencia justa para viajes largos` });
+    } else {
+      reasons.push({ ok: false, txt: `${c.potencia} CV, potencia baja para los viajes Bilbao–Salamanca` });
+      score -= 5;
+    }
+  }
+
+  // Año (cuanto más nuevo mejor)
+  if (c.anio != null) {
+    const diff = c.anio - CRITERIA.anioBaseline;
+    const bonus = Math.max(-10, Math.min(15, diff * 1.5));
+    score += bonus;
+    reasons.push({ ok: null, txt: `Año ${c.anio}` });
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  let veredicto;
+  if (hardFail) veredicto = "no-apto";
+  else if (score >= 65) veredicto = "apto";
+  else veredicto = "revisar";
+
+  return { veredicto, score, reasons };
+}
+
+/* =========================================================
+   UI: TABS
+   ========================================================= */
+const tabButtons = document.querySelectorAll("nav.tabs button");
+const sections = { analizar: document.getElementById("tab-analizar"), garaje: document.getElementById("tab-garaje") };
+tabButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    tabButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    Object.values(sections).forEach(s => s.classList.remove("active"));
+    sections[btn.dataset.tab].classList.add("active");
+    if (btn.dataset.tab === "garaje") renderGaraje();
+  });
+});
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+document.getElementById("storageFlag").innerHTML =
+  `<span class="dot ${usingSupabase ? "on" : ""}"></span>${usingSupabase ? "Sincronizado con Supabase" : "Guardando solo en este navegador (Supabase no configurado)"}`;
+
+/* =========================================================
+   UI: ANALIZAR
+   ========================================================= */
+let currentData = null;
+
+document.getElementById("btnAnalizar").addEventListener("click", async () => {
+  const url = document.getElementById("urlInput").value.trim();
+  if (!url) { toast("Pega primero el enlace del anuncio"); return; }
+  const btn = document.getElementById("btnAnalizar");
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const texto = await extraerTextoDePagina(url);
+    const datos = parseTexto(texto, url);
+    currentData = { ...datos, anuncio_url: url };
+    rellenarFormulario(currentData);
+    actualizarVeredicto();
+    document.getElementById("result").classList.add("show");
+  } catch (e) {
+    console.error(e);
+    toast("No se pudo extraer automáticamente. Rellena los datos a mano abajo.");
+    currentData = { titulo: "", precio: null, km: null, anio: null, combustible: "", cambio: "", tipo: "", potencia: null, consumo: null, foto: "", plataforma: detectarPlataforma(url), anuncio_url: url };
+    rellenarFormulario(currentData);
+    actualizarVeredicto();
+    document.getElementById("result").classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+function rellenarFormulario(d) {
+  document.getElementById("f_titulo").value = d.titulo || "";
+  document.getElementById("f_precio").value = d.precio ?? "";
+  document.getElementById("f_km").value = d.km ?? "";
+  document.getElementById("f_anio").value = d.anio ?? "";
+  document.getElementById("f_combustible").value = d.combustible || "";
+  document.getElementById("f_cambio").value = d.cambio || "";
+  document.getElementById("f_tipo").value = d.tipo || "";
+  document.getElementById("f_potencia").value = d.potencia ?? "";
+  document.getElementById("f_consumo").value = d.consumo ?? "";
+  document.getElementById("f_foto").value = d.foto || "";
+
+  const img = document.getElementById("prevPhoto");
+  if (d.foto) { img.src = d.foto; img.style.display = "block"; }
+  else { img.style.display = "none"; }
+}
+
+function leerFormulario() {
+  return {
+    titulo: document.getElementById("f_titulo").value.trim(),
+    precio: numOrNull(document.getElementById("f_precio").value),
+    km: numOrNull(document.getElementById("f_km").value),
+    anio: numOrNull(document.getElementById("f_anio").value),
+    combustible: document.getElementById("f_combustible").value,
+    cambio: document.getElementById("f_cambio").value,
+    tipo: document.getElementById("f_tipo").value,
+    potencia: numOrNull(document.getElementById("f_potencia").value),
+    consumo: numOrNull(document.getElementById("f_consumo").value),
+    foto: document.getElementById("f_foto").value.trim(),
+  };
+}
+function numOrNull(v) { return v === "" || v === null || v === undefined ? null : Number(v); }
+
+function actualizarVeredicto() {
+  const form = leerFormulario();
+  const { veredicto, score, reasons } = calcularVeredicto(form);
+  currentData = { ...currentData, ...form };
+  currentData.apto = veredicto === "apto";
+  currentData.puntuacion = score;
+  currentData.motivo = reasons.map(r => r.txt).join(" · ");
+
+  const box = document.getElementById("verdictBox");
+  box.className = "verdict " + veredicto;
+  const icons = { apto: "✅", "no-apto": "⛔", revisar: "🟡" };
+  const labels = { apto: "APTO — cumple tus necesidades", "no-apto": "NO APTO", revisar: "A REVISAR — algo no está claro" };
+  document.getElementById("verdictIcon").textContent = icons[veredicto];
+  document.getElementById("verdictText").textContent = labels[veredicto];
+  document.getElementById("verdictScore").textContent = score + "/100";
+
+  const ul = document.getElementById("reasons");
+  ul.innerHTML = "";
+  reasons.forEach(r => {
+    const li = document.createElement("li");
+    li.className = r.ok === true ? "good" : r.ok === false ? "bad" : "info";
+    li.textContent = r.txt;
+    ul.appendChild(li);
+  });
+}
+
+["f_titulo","f_precio","f_km","f_anio","f_combustible","f_cambio","f_tipo","f_potencia","f_consumo","f_foto"]
+  .forEach(id => document.getElementById(id).addEventListener("change", actualizarVeredicto));
+
+document.getElementById("btnRecalcular").addEventListener("click", actualizarVeredicto);
+
+document.getElementById("f_foto").addEventListener("change", (e) => {
+  const img = document.getElementById("prevPhoto");
+  if (e.target.value) { img.src = e.target.value; img.style.display = "block"; }
+  else { img.style.display = "none"; }
+});
+
+document.getElementById("btnAnadir").addEventListener("click", async () => {
+  const form = leerFormulario();
+  const { veredicto, score, reasons } = calcularVeredicto(form);
+  const coche = {
+    titulo: form.titulo || "Coche sin título",
+    marca: null, modelo: null,
+    anio: form.anio, precio: form.precio, km: form.km,
+    combustible: form.combustible || null, cambio: form.cambio || null,
+    tipo: form.tipo || null, potencia_cv: form.potencia, consumo_l100: form.consumo,
+    foto_url: form.foto || null, anuncio_url: currentData.anuncio_url,
+    plataforma: currentData.plataforma || null,
+    descripcion: null,
+    apto: veredicto === "apto",
+    puntuacion: score,
+    motivo: reasons.map(r => r.txt).join(" · "),
+    estado: "guardado",
+  };
+  try {
+    await guardarCoche(coche);
+    toast("Añadido al garaje 🚗");
+    resetAnalizar();
+  } catch (e) {
+    console.error(e);
+    toast("Error al guardar: " + e.message);
+  }
+});
+
+document.getElementById("btnDescartar").addEventListener("click", () => {
+  toast("Descartado");
+  resetAnalizar();
+});
+
+function resetAnalizar() {
+  document.getElementById("urlInput").value = "";
+  document.getElementById("result").classList.remove("show");
+  currentData = null;
+}
+
+/* =========================================================
+   UI: GARAJE
+   ========================================================= */
+let filtroActual = "todos";
+document.querySelectorAll(".filters button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filters button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    filtroActual = btn.dataset.filter;
+    renderGaraje();
+  });
+});
+
+async function renderGaraje() {
+  const grid = document.getElementById("carsGrid");
+  const empty = document.getElementById("emptyState");
+  let coches = [];
+  try {
+    coches = await listarCoches();
+  } catch (e) {
+    console.error(e);
+    toast("Error al cargar el garaje: " + e.message);
+  }
+
+  document.getElementById("garajeCount").textContent = coches.length ? `(${coches.length})` : "";
+  document.getElementById("garajeResumen").textContent =
+    `${coches.length} coche${coches.length === 1 ? "" : "s"} · ${coches.filter(c => c.apto).length} apto${coches.filter(c => c.apto).length === 1 ? "" : "s"}`;
+
+  let filtrados = coches;
+  if (filtroActual === "apto") filtrados = coches.filter(c => c.apto);
+  if (filtroActual === "revisar") filtrados = coches.filter(c => !c.apto);
+
+  grid.innerHTML = "";
+  empty.style.display = filtrados.length ? "none" : "block";
+
+  filtrados.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "car-card";
+
+    const photo = c.foto_url
+      ? `<img class="car-photo" src="${escapeHtml(c.foto_url)}" alt="">`
+      : `<div class="car-photo placeholder">🚗</div>`;
+
+    card.innerHTML = `
+      ${photo}
+      <div class="car-body">
+        <span class="car-badge ${c.apto ? "apto" : "revisar"}">${c.apto ? "Apto" : "A revisar"}</span>
+        <div class="car-title">${escapeHtml(c.titulo || "Sin título")}</div>
+        <div class="car-price">${c.precio != null ? c.precio.toLocaleString("es-ES") + " €" : "Precio ?"}</div>
+        <div class="car-meta">
+          ${c.km != null ? `<span class="chip">${c.km.toLocaleString("es-ES")} km</span>` : ""}
+          ${c.anio ? `<span class="chip">${c.anio}</span>` : ""}
+          ${c.combustible ? `<span class="chip">${capitaliza(c.combustible)}</span>` : ""}
+          ${c.cambio ? `<span class="chip">${capitaliza(c.cambio)}</span>` : ""}
+        </div>
+        <div class="car-footer">
+          <a class="btn btn-primary" href="${escapeHtml(c.anuncio_url)}" target="_blank" rel="noopener">Ver anuncio</a>
+          <button class="btn btn-ghost" data-id="${c.id}">Quitar</button>
+        </div>
+      </div>
+    `;
+    card.querySelector("button[data-id]").addEventListener("click", async () => {
+      try { await borrarCoche(c.id); toast("Coche eliminado"); renderGaraje(); }
+      catch (e) { toast("Error al eliminar: " + e.message); }
+    });
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
+function capitaliza(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+renderGaraje();
+</script>
+</body>
+</html>
